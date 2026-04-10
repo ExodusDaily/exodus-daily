@@ -4,7 +4,9 @@ import { eq, desc, and } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import type { Pillar, Video, Article, Subscriber, InsertVideo, InsertArticle, InsertSubscriber } from "@shared/schema";
 
-const sqlite = new Database("exodus.db");
+// Use persistent disk on Render (/data), fallback to local for dev
+const DB_PATH = process.env.NODE_ENV === 'production' ? '/data/exodus.db' : 'exodus.db';
+const sqlite = new Database(DB_PATH);
 export const db = drizzle(sqlite, { schema });
 
 // Run migrations
