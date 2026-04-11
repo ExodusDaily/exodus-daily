@@ -140,8 +140,12 @@ export default function Home() {
               Every area of your life, examined through Scripture.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {pillars.sort((a, b) => a.sortOrder - b.sortOrder).map(pillar => (
+          {/* Pyramid layout: 2 on top row, 3 on bottom row */}
+          {(() => {
+            const sorted = pillars.slice().sort((a, b) => a.sortOrder - b.sortOrder);
+            const topRow = sorted.slice(0, 2);
+            const bottomRow = sorted.slice(2);
+            const PillarCard = ({ pillar }: { pillar: typeof sorted[0] }) => (
               <Link key={pillar.id} href={`/pillar/${pillar.id}`}>
                 <div className="card-lift rounded-lg p-6 border h-full cursor-pointer" style={{ background: "var(--navy-light)", borderColor: "rgba(201,150,42,0.15)" }}>
                   <div style={{ color: PILLAR_COLORS[pillar.id] || "#c9962a" }}>
@@ -154,8 +158,19 @@ export default function Home() {
                   </p>
                 </div>
               </Link>
-            ))}
-          </div>
+            );
+            return (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:w-2/3 lg:mx-auto">
+                  {topRow.map(pillar => <PillarCard key={pillar.id} pillar={pillar} />)}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {bottomRow.map(pillar => <PillarCard key={pillar.id} pillar={pillar} />)}
+                </div>
+              </div>
+            );
+          })()}
+          {/* End pyramid layout */}
         </div>
       </section>
 
