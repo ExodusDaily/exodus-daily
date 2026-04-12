@@ -22,7 +22,7 @@ function LoginScreen({ onLogin }: { onLogin: (pw: string) => void }) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const res = await api.adminAuth(pw) as any;
+    const res = await api.adminAuth(pw).then((r: any) => r.json()).catch(() => ({})) as any;
     if (res.success) {
       onLogin(pw);
     } else {
