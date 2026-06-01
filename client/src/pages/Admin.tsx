@@ -183,7 +183,7 @@ function VideosTab({ password, toast }: { password: string; toast: any }) {
               onChange={e => setPillar(e.target.value)}
               data-testid="select-pillar"
               disabled={importing}
-              className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none bg-white focus:border-red-800 transition disabled:opacity-50"
+              className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white focus:border-red-800 transition disabled:opacity-50"
             >
               {PILLARS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
@@ -436,7 +436,7 @@ function ArticlesTab({ password, toast }: { password: string; toast: any }) {
                 value={form.pillarId}
                 onChange={e => setForm(f => ({ ...f, pillarId: e.target.value }))}
                 data-testid="select-article-pillar"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none bg-white focus:border-red-800 transition"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none bg-white focus:border-red-800 transition"
               >
                 {PILLARS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
