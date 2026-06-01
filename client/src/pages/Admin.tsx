@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "@/lib/api";
 import type { Video, Article } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
@@ -170,7 +170,8 @@ function VideosTab({ password, toast }: { password: string; toast: any }) {
               rows={5}
               data-testid="input-youtube-urls"
               disabled={importing}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono outline-none focus:border-red-800 resize-y transition disabled:opacity-50"
+              style={{ color: "#111827" }}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono outline-none focus:border-red-800 resize-y transition disabled:opacity-50 bg-white"
             />
             <p className="text-xs text-gray-400 mt-1">{parseUrls(urls).length} URL{parseUrls(urls).length !== 1 ? "s" : ""} detected</p>
           </div>
@@ -270,6 +271,68 @@ function VideosTab({ password, toast }: { password: string; toast: any }) {
   );
 }
 
+// ── FORMATTING TOOLBAR ───────────────────────────────────────────────────────
+function FormatToolbar({ textareaRef, onChange }: {
+  textareaRef: React.RefObject<HTMLTextAreaElement>;
+  onChange: (val: string) => void;
+}) {
+  const wrap = (before: string, after = before) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const selected = el.value.slice(start, end);
+    const replacement = before + (selected || "text") + after;
+    const newVal = el.value.slice(0, start) + replacement + el.value.slice(end);
+    onChange(newVal);
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(start + before.length, start + before.length + (selected || "text").length);
+    }, 0);
+  };
+
+  const insertLine = (prefix: string) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const lineStart = el.value.lastIndexOf("\n", start - 1) + 1;
+    const newVal = el.value.slice(0, lineStart) + prefix + el.value.slice(lineStart);
+    onChange(newVal);
+    setTimeout(() => { el.focus(); el.setSelectionRange(start + prefix.length, start + prefix.length); }, 0);
+  };
+
+  const tools = [
+    { label: "B", title: "Bold",           style: "font-bold",   action: () => wrap("**") },
+    { label: "I", title: "Italic",         style: "italic",      action: () => wrap("*") },
+    { label: "H", title: "Section Heading", style: "font-bold",   action: () => insertLine("## ") },
+    { label: "❝", title: "Scripture Quote", style: "",            action: () => insertLine("> ") },
+    { label: "—", title: "Divider",         style: "",            action: () => {
+      const el = textareaRef.current; if (!el) return;
+      const pos = el.selectionStart;
+      const newVal = el.value.slice(0, pos) + "\n---\n" + el.value.slice(pos);
+      onChange(newVal);
+      setTimeout(() => { el.focus(); el.setSelectionRange(pos + 5, pos + 5); }, 0);
+    }},
+  ];
+
+  return (
+    <div className="flex items-center gap-1 px-2 py-1.5 bg-gray-50 border border-gray-200 border-b-0 rounded-t-xl">
+      {tools.map(t => (
+        <button
+          key={t.label}
+          type="button"
+          title={t.title}
+          onMouseDown={e => { e.preventDefault(); t.action(); }}
+          className={`w-8 h-8 flex items-center justify-center text-sm rounded-lg text-gray-700 hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200 transition select-none ${t.style}`}
+        >
+          {t.label}
+        </button>
+      ))}
+      <span className="ml-2 text-xs text-gray-400">Select text then click to format</span>
+    </div>
+  );
+}
+
 // ── ARTICLES TAB ──────────────────────────────────────────────────────────────
 function ArticlesTab({ password, toast }: { password: string; toast: any }) {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -285,6 +348,7 @@ function ArticlesTab({ password, toast }: { password: string; toast: any }) {
   });
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const loadArticles = () => api.getAdminArticles(password).then(setArticles);
   useEffect(() => { loadArticles(); }, []);
@@ -405,7 +469,8 @@ function ArticlesTab({ password, toast }: { password: string; toast: any }) {
               placeholder="One or two sentences summarizing the article..."
               rows={2}
               data-testid="input-article-excerpt"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-red-800 resize-none transition"
+              style={{ color: "#111827" }}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-red-800 resize-none transition bg-white"
             />
           </div>
 
@@ -413,7 +478,6 @@ function ArticlesTab({ password, toast }: { password: string; toast: any }) {
           <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 block">
               Article Body *
-              {!previewMode && <span className="text-gray-400 font-normal normal-case ml-1">— paste your article here. Use ## for headings, **bold**, &gt; for Scripture quotes.</span>}
             </label>
             {previewMode ? (
               <div
@@ -421,14 +485,22 @@ function ArticlesTab({ password, toast }: { password: string; toast: any }) {
                 dangerouslySetInnerHTML={{ __html: renderMarkdown(form.body) }}
               />
             ) : (
-              <textarea
-                value={form.body}
-                onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
-                placeholder={"Paste your article here...\n\n## First Heading\n\nParagraph text...\n\n> Scripture quote here"}
-                rows={20}
-                data-testid="input-article-body"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-mono outline-none focus:border-red-800 resize-y transition"
-              />
+              <div>
+                <FormatToolbar
+                  textareaRef={bodyRef}
+                  onChange={val => setForm(f => ({ ...f, body: val }))}
+                />
+                <textarea
+                  ref={bodyRef}
+                  value={form.body}
+                  onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
+                  placeholder={"Paste your article here...\n\n## First Heading\n\nParagraph text...\n\n> Scripture quote here"}
+                  rows={22}
+                  data-testid="input-article-body"
+                  style={{ color: "#111827", caretColor: "#8b1a2a" }}
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-b-xl rounded-t-none text-sm font-mono outline-none focus:border-red-800 resize-y transition bg-white"
+                />
+              </div>
             )}
           </div>
 
