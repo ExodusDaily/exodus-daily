@@ -85,7 +85,7 @@ function LoginScreen({ onLogin }: { onLogin: (pw: string) => void }) {
             data-testid="input-admin-password"
             autoFocus
             required
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:border-red-800 transition"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 bg-white outline-none focus:ring-2 focus:border-red-800 transition"
             style={{ focusBorderColor: "#8b1a2a" }}
           />
           {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
@@ -427,7 +427,7 @@ function ArticlesTab({ password, toast }: { password: string; toast: any }) {
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 placeholder="Article headline"
                 data-testid="input-article-title"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold outline-none focus:border-red-800 transition"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-900 bg-white outline-none focus:border-red-800 transition"
               />
             </div>
             <div>
